@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allcox Pipeline Dashboard</title>
+<style>
+:root {
+  --bg:#f7f6f3;--su:#fff;--bd:#e2e0d8;--bds:#c8c5bc;
+  --t:#1a1917;--t2:#5a5956;--t3:#8a8884;
+  --blue:#185FA5;--blue-l:#E6F1FB;--teal:#0F6E56;--teal-l:#E1F5EE;
+  --amber:#BA7517;--amber-l:#FAEEDA;--red:#A32D2D;--red-l:#FCEBEB;
+  --green:#3B6D11;--green-l:#EAF3DE;--purple:#534AB7;--purple-l:#EEEDFE;
+  --gray-l:#F1EFE8;--r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);font-size:14px;min-height:100vh;}
+.header{background:var(--su);border-bottom:1px solid var(--bd);padding:0 24px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;}
+.bb{height:30px;padding:0 12px;border-radius:6px;display:flex;align-items:center;font-weight:700;font-size:12px;letter-spacing:.04em;}
+.bb-g{background:var(--blue);color:#fff;}.bb-p{background:var(--teal);color:#fff;}
+.hsep{width:1px;height:20px;background:var(--bd);margin:0 10px;}
+.htitle{font-size:15px;font-weight:500;margin-left:10px;}
+.spacer{flex:1;}
+.sync-badge{font-size:12px;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:5px;font-weight:500;}
+.sb-ok{background:var(--green-l);color:var(--green);}
+.sb-saving{background:var(--amber-l);color:var(--amber);}
+.sb-err{background:var(--red-l);color:var(--red);}
+.sb-none{background:var(--gray-l);color:var(--t3);}
+.hbtns{display:flex;gap:8px;align-items:center;margin-left:12px;}
+.btn{padding:6px 14px;border-radius:var(--r);border:1px solid var(--bds);background:var(--su);cursor:pointer;font-size:13px;font-weight:500;color:var(--t);font-family:inherit;transition:background .12s;white-space:nowrap;}
+.btn:hover{background:var(--bg);}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-blue:hover{background:#0C447C;}
+.btn-red{background:var(--red-l);border-color:var(--red);color:var(--red);}
+.btn-red:hover{background:#F7C1C1;}
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--bd);border-bottom:1px solid var(--bd);}
+.sc{background:var(--su);padding:12px 20px;}
+.sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px;}
+.sv{font-size:22px;font-weight:600;line-height:1;}
+.sv-b{color:var(--blue);}.sv-t{color:var(--teal);}.sv-a{color:var(--amber);}.sv-r{color:var(--red);}
+.tabs{display:flex;padding:0 24px;background:var(--su);border-bottom:1px solid var(--bd);}
+.tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s;}
+.tab:hover{color:var(--t);}.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.filters{padding:10px 24px;background:var(--su);border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fl{font-size:12px;color:var(--t3);font-weight:500;margin-right:2px;}
+.chip{padding:4px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--su);font-size:12px;cursor:pointer;color:var(--t2);transition:all .1s;}
+.chip:hover{border-color:var(--blue);color:var(--blue);}
+.chip.active{background:var(--blue-l);border-color:var(--blue);color:var(--blue);font-weight:500;}
+.fsep{width:1px;height:20px;background:var(--bd);margin:0 2px;}
+select.fsel{padding:4px 10px;border-radius:20px;border:1px solid var(--bd);background:var(--su);font-size:12px;color:var(--t2);cursor:pointer;font-family:inherit;}
+.main{padding:20px 24px;}
+.view{display:none;}.view.active{display:block;}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.col{background:var(--gray-l);border-radius:var(--rl);padding:12px;min-height:360px;}
+.col-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.col-cnt{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.cl .col-title{color:var(--t3);}.cl .col-cnt{background:var(--bd);color:var(--t2);}
+.ck .col-title{color:var(--blue);}.ck .col-cnt{background:var(--blue-l);color:var(--blue);}
+.ca .col-title{color:var(--amber);}.ca .col-cnt{background:var(--amber-l);color:var(--amber);}
+.cx .col-title{color:var(--teal);}.cx .col-cnt{background:var(--teal-l);color:var(--teal);}
+.cp .col-title{color:var(--red);}.cp .col-cnt{background:var(--red-l);color:var(--red);}
+.card{background:var(--su);border-radius:var(--r);border:1px solid var(--bd);padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .12s;}
+.card:hover{border-color:var(--blue);}
+.cbadge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:4px;margin-bottom:7px;}
+.cb-g{background:var(--blue);color:#fff;}.cb-p{background:var(--teal);color:#fff;}
+.cname{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.3;}
+.cmeta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.tag{font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid;}
+.tr{background:var(--purple-l);border-color:var(--purple-l);color:var(--purple);}
+.tm{background:var(--gray-l);border-color:var(--bd);color:var(--t2);}
+.pbar{margin-top:7px;}
+.pbar-lbl{font-size:11px;color:var(--t3);margin-bottom:3px;display:flex;justify-content:space-between;}
+.pbar-track{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:3px;}
+.fok{background:var(--teal);}.fwarn{background:var(--amber);}.fcrit{background:var(--red);}
+.cmiss{margin-top:6px;font-size:11px;color:var(--red);font-weight:500;}
+.cvol{font-size:11px;color:var(--t3);margin-top:5px;}
+.empty-col{text-align:center;padding:24px 12px;color:var(--t3);font-size:12px;}
+.tbl{width:100%;border-collapse:collapse;background:var(--su);border-radius:var(--rl);border:1px solid var(--bd);}
+.tbl th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);white-space:nowrap;background:var(--gray-l);}
+.tbl td{padding:9px 14px;border-top:1px solid var(--bd);font-size:13px;}
+.tbl tr:hover td{background:var(--bg);cursor:pointer;}
+.pc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;}
+.pc{background:var(--su);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;}
+.pc-name{font-weight:600;font-size:13px;margin-bottom:3px;}
+.pc-role{font-size:11px;color:var(--t3);margin-bottom:8px;}
+.pc-stats{display:flex;gap:12px;}
+.pcs{text-align:center;}
+.pcs-v{font-size:18px;font-weight:600;line-height:1;}
+.pcs-l{font-size:10px;color:var(--t3);margin-top:2px;}
+.sec-title{font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--su);border-radius:var(--rl);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;}
+.mhd{padding:18px 24px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--su);z-index:1;}
+.mtitle{font-size:16px;font-weight:600;}
+.mclose{width:28px;height:28px;border-radius:6px;border:1px solid var(--bd);background:var(--su);cursor:pointer;font-size:16px;color:var(--t2);display:flex;align-items:center;justify-content:center;}
+.mclose:hover{background:var(--bg);}
+.mbody{padding:20px 24px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ffull{grid-column:1/-1;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.flbl{font-size:12px;font-weight:500;color:var(--t2);}
+.fi{padding:8px 10px;border-radius:var(--r);border:1px solid var(--bd);background:var(--su);font-size:13px;color:var(--t);font-family:inherit;transition:border-color .12s;}
+.fi:focus{outline:none;border-color:var(--blue);}
+textarea.fi{resize:vertical;min-height:72px;}
+.mfoot{padding:14px 24px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:-2px;margin-right:5px;}
+.spinner-dark{border-color:rgba(0,0,0,.15);border-top-color:var(--t2);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1917;color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;z-index:2000;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:12px;color:var(--t3);}
+@media(max-width:1200px){.board{grid-template-columns:repeat(3,1fr);}.stats-bar{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.board{grid-template-columns:repeat(2,1fr);}.stats-bar{grid-template-columns:repeat(2,1fr);}.fgrid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="bb bb-g">ALLCOX</span>
+  <span class="hsep"></span>
+  <span class="bb bb-p">PERSONA</span>
+  <span class="htitle">Pipeline &amp; Personalstatus</span>
+  <div class="spacer"></div>
+  <span class="sync-badge sb-none" id="sync-badge">⬤ Verbinde...</span>
+  <div class="hbtns">
+    <button class="btn btn-blue" onclick="openModal(null)">+ Projekt</button>
+  </div>
+</div>
+
+<div class="stats-bar" id="stats-bar">
+  <div class="sc"><div class="sl">Projekte</div><div class="sv">–</div></div>
+  <div class="sc"><div class="sl">Aktiv</div><div class="sv sv-t">–</div></div>
+  <div class="sc"><div class="sl">Angebote</div><div class="sv sv-b">–</div></div>
+  <div class="sc"><div class="sl">Krit. Bedarf</div><div class="sv sv-r">–</div></div>
+  <div class="sc"><div class="sl">Fehlend</div><div class="sv sv-a">–</div></div>
+  <div class="sc"><div class="sl">Volumen/Mo.</div><div class="sv">–</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('board')">Board</div>
+  <div class="tab" onclick="switchTab('list')">Liste</div>
+  <div class="tab" onclick="switchTab('personal')">Personal</div>
+</div>
+
+<div class="filters">
+  <span class="fl">Firma:</span>
+  <span class="chip active" onclick="setFilter('company','alle')">Alle</span>
+  <span class="chip" onclick="setFilter('company','Allcox GmbH')">Allcox GmbH</span>
+  <span class="chip" onclick="setFilter('company','Allcox Persona GmbH')">Allcox Persona GmbH</span>
+  <span class="fsep"></span>
+  <span class="fl">Region:</span>
+  <span id="region-filters"><span class="chip active" onclick="setFilter('region','alle')">Alle</span></span>
+  <span class="fsep"></span>
+  <span class="fl">MA:</span>
+  <select class="fsel" id="ma-filter" onchange="setFilter('ma',this.value)"><option value="alle">Alle</option></select>
+</div>
+
+<div class="main">
+  <div class="view active" id="view-board">
+    <div class="loading-screen" id="loading"><span class="spinner spinner-dark"></span>Daten werden geladen...</div>
+    <div class="board" id="board" style="display:none;"></div>
+  </div>
+  <div class="view" id="view-list"><table class="tbl"><thead id="list-head"></thead><tbody id="list-body"></tbody></table></div>
+  <div class="view" id="view-personal"><div id="personal-view"></div></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mtitle" id="modal-title">Projekt erfassen</div>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fgrid">
+        <div class="fg"><label class="flbl">Unternehmen *</label>
+          <select id="f-company" class="fi">
+            <option value="Allcox GmbH">Allcox GmbH</option>
+            <option value="Allcox Persona GmbH">Allcox Persona GmbH</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flbl">Status *</label>
+          <select id="f-status" class="fi">
+            <option value="Lead">Lead</option>
+            <option value="Kontakt">Kontakt</option>
+            <option value="Angebot">Angebot läuft</option>
+            <option value="Aktiv">Aktiv / Laufend</option>
+            <option value="Personalbedarf">Personalbedarf offen</option>
+          </select>
+        </div>
+        <div class="fg ffull"><label class="flbl">Kundenname / Projekt *</label>
+          <input type="text" id="f-customer" class="fi" placeholder="z.B. Kaufland Zentrallager Nord">
+        </div>
+        <div class="fg"><label class="flbl">Region</label>
+          <input type="text" id="f-region" class="fi" placeholder="z.B. Hamburg, NRW">
+        </div>
+        <div class="fg"><label class="flbl">Verantwortlicher MA</label>
+          <input type="text" id="f-ma" class="fi" placeholder="Vorname Nachname">
+        </div>
+        <div class="fg"><label class="flbl">Benötigtes Personal</label>
+          <input type="number" id="f-needed" class="fi" min="0" placeholder="0">
+        </div>
+        <div class="fg"><label class="flbl">Verfügbares Personal</label>
+          <input type="number" id="f-available" class="fi" min="0" placeholder="0">
+        </div>
+        <div class="fg"><label class="flbl">Qualifikation / Profil</label>
+          <input type="text" id="f-profile" class="fi" placeholder="z.B. Staplerfahrer, Kommissionierer">
+        </div>
+        <div class="fg"><label class="flbl">Startdatum</label>
+          <input type="date" id="f-start" class="fi">
+        </div>
+        <div class="fg"><label class="flbl">Volumen (€/Monat)</label>
+          <input type="number" id="f-volume" class="fi" min="0" placeholder="0">
+        </div>
+        <div class="fg ffull"><label class="flbl">Fehlende Profile / Engpässe</label>
+          <input type="text" id="f-missing" class="fi" placeholder="z.B. 3x Schlosser fehlen">
+        </div>
+        <div class="fg ffull"><label class="flbl">Notizen / Nächste Schritte</label>
+          <textarea id="f-notes" class="fi" placeholder="Freitext für interne Notizen..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-red" id="btn-delete" onclick="deleteProject()" style="display:none;margin-right:auto;">Löschen</button>
+      <button class="btn" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-blue" id="btn-save" onclick="saveProject()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://zedxmgqiohyprsuqtelq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplZHhtZ3Fpb2h5cHJzdXF0ZWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNjgwNzQsImV4cCI6MjA5Nzg0NDA3NH0.ggeX2n9_qx0nu0dA75jKj6hWP0KKt9ANB3TV6TlvuLQ';
+const HEADERS = {'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'};
+
+const STATUSES=['Lead','Kontakt','Angebot','Aktiv','Personalbedarf'];
+const SLABELS={Lead:'Lead',Kontakt:'Kontakt',Angebot:'Angebot läuft',Aktiv:'Aktiv / Laufend',Personalbedarf:'Personalbedarf offen'};
+const SCLS={Lead:'cl',Kontakt:'ck',Angebot:'ca',Aktiv:'cx',Personalbedarf:'cp'};
+
+let projects=[];
+let editId=null;
+let filters={company:'alle',region:'alle',ma:'alle'};
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function miss(p){return Math.max(0,(p.needed||0)-(p.available||0));}
+function pct(p){const n=p.needed||0;return n>0?Math.min(100,Math.round((p.available||0)/n*100)):100;}
+function fillCls(p){const v=pct(p);return v>=90?'fok':v>=60?'fwarn':'fcrit';}
+
+function setSyncBadge(state,msg){
+  const el=document.getElementById('sync-badge');
+  el.className='sync-badge '+(state==='ok'?'sb-ok':state==='saving'?'sb-saving':state==='err'?'sb-err':'sb-none');
+  el.textContent=(state==='ok'?'✓ ':state==='saving'?'⏳ ':state==='err'?'✕ ':'⬤ ')+msg;
+}
+
+// ── Supabase API ──────────────────────────────────────────────────────
+async function sbFetch(path,method='GET',body=null){
+  const opts={method,headers:HEADERS};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(SUPABASE_URL+path,opts);
+  if(!r.ok){
+    const err=await r.text();
+    throw new Error('API '+r.status+': '+err.substring(0,120));
+  }
+  const text=await r.text();
+  return text?JSON.parse(text):null;
+}
+
+function rowToProject(row){
+  return{
+    id:row.id,company:row.company||'',customer:row.customer||'',
+    status:row.status||'Lead',region:row.region||'',ma:row.ma||'',
+    needed:row.needed||0,available:row.available||0,profile:row.profile||'',
+    missing:row.missing||'',notes:row.notes||'',start:row.start_date||'',
+    volume:row.volume||0,
+  };
+}
+function projectToRow(p){
+  return{company:p.company,customer:p.customer,status:p.status,region:p.region,
+    ma:p.ma,needed:p.needed||0,available:p.available||0,profile:p.profile,
+    missing:p.missing,notes:p.notes,start_date:p.start||null,volume:p.volume||0};
+}
+
+async function loadData(){
+  setSyncBadge('saving','Lade...');
+  try{
+    const rows=await sbFetch('/rest/v1/pipeline?select=*&order=created_at.desc');
+    projects=(rows||[]).map(rowToProject);
+    setSyncBadge('ok',projects.length+' Projekte');
+    document.getElementById('loading').style.display='none';
+    document.getElementById('board').style.display='grid';
+    render();
+  }catch(e){
+    setSyncBadge('err','Verbindungsfehler');
+    document.getElementById('loading').innerHTML='<div style="color:var(--red);font-size:13px;">⚠ Verbindung fehlgeschlagen: '+esc(e.message)+'<br><br><button class="btn" onclick="loadData()">Erneut versuchen</button></div>';
+    showToast('Fehler: '+e.message);
+  }
+}
+
+// ── CRUD ──────────────────────────────────────────────────────────────
+async function createProject(data){
+  const rows=await sbFetch('/rest/v1/pipeline','POST',projectToRow(data));
+  return rows&&rows[0]?rowToProject(rows[0]):null;
+}
+async function updateProject(id,data){
+  await sbFetch(`/rest/v1/pipeline?id=eq.${id}`,'PATCH',projectToRow(data));
+}
+async function deleteProjectById(id){
+  await sbFetch(`/rest/v1/pipeline?id=eq.${id}`,'DELETE');
+}
+
+// ── Filters ───────────────────────────────────────────────────────────
+function getFiltered(){
+  return projects.filter(p=>{
+    if(filters.company!=='alle'&&p.company!==filters.company)return false;
+    if(filters.region!=='alle'&&p.region!==filters.region)return false;
+    if(filters.ma!=='alle'&&p.ma!==filters.ma)return false;
+    return true;
+  });
+}
+function setFilter(type,val){filters[type]=val;render();}
+
+// ── Render ────────────────────────────────────────────────────────────
+function render(){renderStats();renderFilters();renderBoard();renderList();renderPersonal();}
+
+function renderStats(){
+  const fp=getFiltered();
+  const vol=fp.reduce((a,p)=>a+(p.volume||0),0);
+  const totalMiss=fp.reduce((a,p)=>a+miss(p),0);
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="sc"><div class="sl">Projekte</div><div class="sv">${fp.length}</div></div>
+    <div class="sc"><div class="sl">Aktiv laufend</div><div class="sv sv-t">${fp.filter(p=>p.status==='Aktiv').length}</div></div>
+    <div class="sc"><div class="sl">Angebote offen</div><div class="sv sv-b">${fp.filter(p=>p.status==='Angebot').length}</div></div>
+    <div class="sc"><div class="sl">Krit. Personalbedarf</div><div class="sv sv-r">${fp.filter(p=>p.status==='Personalbedarf').length}</div></div>
+    <div class="sc"><div class="sl">Personal fehlend</div><div class="sv sv-a">${totalMiss}</div></div>
+    <div class="sc"><div class="sl">Volumen / Monat</div><div class="sv">${vol>0?(vol/1000).toFixed(0)+'k €':'–'}</div></div>`;
+}
+
+function renderFilters(){
+  const regions=[...new Set(projects.map(p=>p.region).filter(Boolean))].sort();
+  const maList=[...new Set(projects.map(p=>p.ma).filter(Boolean))].sort();
+  document.getElementById('region-filters').innerHTML=
+    `<span class="chip ${filters.region==='alle'?'active':''}" onclick="setFilter('region','alle')">Alle</span>`+
+    regions.map(r=>`<span class="chip ${filters.region===r?'active':''}" onclick="setFilter('region',${JSON.stringify(r)})">${esc(r)}</span>`).join('');
+  const ms=document.getElementById('ma-filter');
+  ms.innerHTML='<option value="alle">Alle</option>'+maList.map(m=>`<option value="${esc(m)}" ${filters.ma===m?'selected':''}>${esc(m)}</option>`).join('');
+}
+
+function renderBoard(){
+  const fp=getFiltered();
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  STATUSES.forEach(status=>{
+    const cards=fp.filter(p=>p.status===status);
+    const col=document.createElement('div');
+    col.className=`col ${SCLS[status]}`;
+    col.innerHTML=`<div class="col-hd"><span class="col-title">${SLABELS[status]}</span><span class="col-cnt">${cards.length}</span></div>`;
+    if(!cards.length){col.innerHTML+=`<div class="empty-col">Keine Einträge</div>`;}
+    else cards.forEach(p=>{
+      const m=miss(p),pc=pct(p),isG=p.company==='Allcox GmbH';
+      col.innerHTML+=`<div class="card" onclick="openModal('${p.id}')">
+        <span class="cbadge ${isG?'cb-g':'cb-p'}">${isG?'ALLCOX':'PERSONA'}</span>
+        <div class="cname">${esc(p.customer)}</div>
+        <div class="cmeta">
+          ${p.region?`<span class="tag tr">📍 ${esc(p.region)}</span>`:''}
+          ${p.ma?`<span class="tag tm">👤 ${esc(p.ma)}</span>`:''}
+        </div>
+        ${p.profile?`<div style="font-size:11px;color:var(--t3);margin-bottom:4px;">🔧 ${esc(p.profile)}</div>`:''}
+        ${(p.needed||0)>0?`<div class="pbar">
+          <div class="pbar-lbl"><span>${p.available||0}/${p.needed} MA</span><span>${pc}%</span></div>
+          <div class="pbar-track"><div class="pbar-fill ${fillCls(p)}" style="width:${pc}%"></div></div>
+        </div>`:''}
+        ${m>0?`<div class="cmiss">⚠ ${m} fehlen${p.missing?': '+esc(p.missing.substring(0,48)):''}</div>`:''}
+        ${(p.volume||0)>0?`<div class="cvol">💶 ${p.volume.toLocaleString('de-DE')} €/Mo.</div>`:''}
+      </div>`;
+    });
+    board.appendChild(col);
+  });
+}
+
+function renderList(){
+  const fp=getFiltered();
+  const sc={Lead:'var(--t3)',Kontakt:'var(--blue)',Angebot:'var(--amber)',Aktiv:'var(--teal)',Personalbedarf:'var(--red)'};
+  document.getElementById('list-head').innerHTML=`<tr>${['Firma','Kunde','Region','Status','MA','Besetzt','Fehlen','Volumen','Notiz'].map(h=>`<th>${h}</th>`).join('')}</tr>`;
+  document.getElementById('list-body').innerHTML=fp.map(p=>{
+    const m=miss(p);const isG=p.company==='Allcox GmbH';
+    return`<tr onclick="openModal('${p.id}')">
+      <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isG?'var(--blue)':'var(--teal)'};color:#fff;">${isG?'ALLCOX':'PERSONA'}</span></td>
+      <td style="font-weight:500;">${esc(p.customer)}</td>
+      <td style="color:var(--t2);font-size:12px;">${esc(p.region||'–')}</td>
+      <td><span style="font-weight:600;color:${sc[p.status]};font-size:12px;">${SLABELS[p.status]}</span></td>
+      <td style="font-size:12px;">${esc(p.ma||'–')}</td>
+      <td>${(p.needed||0)>0?`${p.available||0}/${p.needed}`:'–'}</td>
+      <td style="font-weight:600;color:${m>0?'var(--red)':'var(--teal)'};">${m>0?'⚠ '+m:'✓'}</td>
+      <td style="font-size:12px;color:var(--t2);">${(p.volume||0)>0?p.volume.toLocaleString('de-DE')+' €':'–'}</td>
+      <td style="font-size:11px;color:var(--t3);max-width:180px;">${esc((p.notes||'').substring(0,70))}${(p.notes||'').length>70?'…':''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPersonal(){
+  const fp=getFiltered();
+  const maMap={};
+  fp.forEach(p=>{
+    const ma=p.ma||'Nicht zugewiesen';
+    if(!maMap[ma])maMap[ma]={projects:[],needed:0,available:0,missing:0};
+    maMap[ma].projects.push(p);
+    maMap[ma].needed+=(p.needed||0);maMap[ma].available+=(p.available||0);maMap[ma].missing+=miss(p);
+  });
+  let html=`<div class="sec-title">Verantwortungsbereiche</div><div class="pc-grid">`;
+  Object.entries(maMap).forEach(([ma,d])=>{
+    const pc2=d.needed>0?Math.min(100,Math.round(d.available/d.needed*100)):100;
+    const fc=pc2>=90?'fok':pc2>=60?'fwarn':'fcrit';
+    html+=`<div class="pc">
+      <div class="pc-name">👤 ${esc(ma)}</div>
+      <div class="pc-role">${d.projects.length} Projekt${d.projects.length!==1?'e':''}</div>
+      <div class="pc-stats">
+        <div class="pcs"><div class="pcs-v">${d.projects.length}</div><div class="pcs-l">Projekte</div></div>
+        <div class="pcs"><div class="pcs-v" style="color:var(--teal)">${d.available}</div><div class="pcs-l">Besetzt</div></div>
+        <div class="pcs"><div class="pcs-v" style="color:${d.missing>0?'var(--red)':'var(--teal)'}">${d.missing}</div><div class="pcs-l">Fehlen</div></div>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:3px;">${d.available}/${d.needed} besetzt (${pc2}%)</div>
+        <div class="pbar-track"><div class="pbar-fill ${fc}" style="width:${pc2}%"></div></div>
+      </div>
+    </div>`;
+  });
+  html+=`</div><div class="sec-title">Offene Personalbedarfe</div>`;
+  const crit=fp.filter(p=>miss(p)>0);
+  if(!crit.length){
+    html+=`<div style="background:var(--teal-l);color:var(--teal);padding:14px 20px;border-radius:var(--r);font-size:13px;font-weight:500;">✓ Alle Stellen aktuell besetzt.</div>`;
+  } else {
+    html+=`<table class="tbl"><thead><tr>${['Kunde','Firma','Region','MA','Profil','Ben.','Bes.','Fehlen','Detail'].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+    crit.forEach(p=>{
+      const m=miss(p);const isG=p.company==='Allcox GmbH';
+      html+=`<tr onclick="openModal('${p.id}')">
+        <td style="font-weight:500;">${esc(p.customer)}</td>
+        <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isG?'var(--blue)':'var(--teal)'};color:#fff;">${isG?'ALLCOX':'PERSONA'}</span></td>
+        <td style="font-size:12px;">${esc(p.region||'–')}</td>
+        <td style="font-size:12px;">${esc(p.ma||'–')}</td>
+        <td style="font-size:12px;color:var(--t2);">${esc(p.profile||'–')}</td>
+        <td>${p.needed||0}</td><td>${p.available||0}</td>
+        <td style="font-weight:700;color:var(--red);">⚠ ${m}</td>
+        <td style="font-size:11px;color:var(--t3);">${esc(p.missing||'–')}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table>`;
+  }
+  document.getElementById('personal-view').innerHTML=html;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────
+function openModal(id){
+  editId=id;
+  const p=id?projects.find(x=>x.id===id):null;
+  document.getElementById('modal-title').textContent=p?'Projekt bearbeiten':'Neues Projekt';
+  document.getElementById('f-company').value=p?.company||'Allcox GmbH';
+  document.getElementById('f-status').value=p?.status||'Lead';
+  document.getElementById('f-customer').value=p?.customer||'';
+  document.getElementById('f-region').value=p?.region||'';
+  document.getElementById('f-ma').value=p?.ma||'';
+  document.getElementById('f-needed').value=p?.needed||'';
+  document.getElementById('f-available').value=p?.available||'';
+  document.getElementById('f-profile').value=p?.profile||'';
+  document.getElementById('f-missing').value=p?.missing||'';
+  document.getElementById('f-notes').value=p?.notes||'';
+  document.getElementById('f-start').value=p?.start||'';
+  document.getElementById('f-volume').value=p?.volume||'';
+  document.getElementById('btn-delete').style.display=p?'block':'none';
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';editId=null;}
+function closeModalOutside(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+async function saveProject(){
+  const customer=document.getElementById('f-customer').value.trim();
+  if(!customer){showToast('Kundenname ist Pflichtfeld');return;}
+  const btn=document.getElementById('btn-save');
+  btn.innerHTML='<span class="spinner"></span>Speichert...';btn.disabled=true;
+  const data={
+    company:document.getElementById('f-company').value,
+    status:document.getElementById('f-status').value,customer,
+    region:document.getElementById('f-region').value.trim(),
+    ma:document.getElementById('f-ma').value.trim(),
+    needed:parseInt(document.getElementById('f-needed').value)||0,
+    available:parseInt(document.getElementById('f-available').value)||0,
+    profile:document.getElementById('f-profile').value.trim(),
+    missing:document.getElementById('f-missing').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+    start:document.getElementById('f-start').value,
+    volume:parseInt(document.getElementById('f-volume').value)||0,
+  };
+  setSyncBadge('saving','Speichert...');
+  try{
+    if(editId){
+      await updateProject(editId,data);
+      const i=projects.findIndex(p=>p.id===editId);
+      if(i>=0)projects[i]={...projects[i],...data};
+      showToast('✓ Gespeichert');
+    } else {
+      const created=await createProject(data);
+      if(created)projects.unshift(created);
+      showToast('✓ Projekt angelegt');
+    }
+    setSyncBadge('ok',projects.length+' Projekte');
+    closeModal();render();
+  }catch(e){
+    setSyncBadge('err','Fehler');
+    showToast('Fehler: '+e.message);
+  }
+  btn.innerHTML='Speichern';btn.disabled=false;
+}
+
+async function deleteProject(){
+  if(!editId)return;
+  if(!confirm('Projekt wirklich löschen?'))return;
+  setSyncBadge('saving','Löscht...');
+  try{
+    await deleteProjectById(editId);
+    projects=projects.filter(p=>p.id!==editId);
+    setSyncBadge('ok',projects.length+' Projekte');
+    closeModal();render();showToast('Projekt gelöscht');
+  }catch(e){
+    setSyncBadge('err','Fehler');
+    showToast('Fehler: '+e.message);
+  }
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['board','list','personal'][i]===tab);
+  });
+  document.querySelectorAll('.view').forEach(v=>{
+    v.classList.toggle('active',v.id==='view-'+tab);
+  });
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+loadData();
+</script>
+</body>
+</html>
